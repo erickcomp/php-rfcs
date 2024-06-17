@@ -9,7 +9,7 @@
 - First Published at: TBD
 
 ## Introduction
-In PHP, initializing static properties with non-constant values often requires cumbersome workarounds that can clutter the code and reduce readability. One commonly used technique is to create a method that's called inside the class constructor or before any attempt to read the static property. This method first checks if the static properties have been initialized, and if they haven't, it initializes them. Here is an example of code I've encountered in some codebases, which requires calling the initializer method before every usage of the static variable to ensure it's properly initialized:
+In PHP, initializing static properties with non-constant values often requires cumbersome workarounds that can clutter the code and reduce readability. One commonly used technique is to create a method that's called inside the class constructor or before any attempt to read the static property. This method first checks if the static properties have been initialized, and if they haven't, it initializes them. Here is an example of code I've encountered in some codebases, which requires calling the initializer method before every usage of the static property to ensure it's properly initialized:
 
 ```php
 class MyClass
@@ -97,7 +97,7 @@ var_dump($c);
 
 ## Proposal
 
-This RFC proposes the introduction of a new magic method, `__staticConstruct`, in PHP to streamline the initialization of static properties and improve code clarity. If declared in a class, this method will be invoked automatically by the engine just after the current code that initializes the class's static variables. Before proposing this RFC, I considered using a userland autoloader for this purpose, but I realized that it is clearly out of the scope of a class autoloader, which is to find and load the class.
+This RFC proposes the introduction of a new magic method, `__staticConstruct`, in PHP to streamline the initialization of static properties and improve code clarity. If declared in a class, this method will be invoked automatically by the engine just after the current code that initializes the class's static properties. Before proposing this RFC, I considered using a userland autoloader for this purpose, but I realized that it is clearly out of the scope of a class autoloader, which is to find and load the class.
 
 
 ## Previous RFC on this subject
@@ -108,7 +108,7 @@ There was a previous attempt to create an RFC for static constructors, which can
 
 ### Addressing Potential Criticism
 
-Some might argue against this RFC on the basis that static properties should be avoided as suggested by certain design patterns or even due to concerns about testability. However, static variables already exist in PHP and have proven to be useful in certain scenarios. Ignoring the need for a more elegant initialization method does not negate the practical use cases where static properties are beneficial and the natural approach.
+Some might argue against this RFC on the basis that static properties should be avoided as suggested by certain design patterns or even due to concerns about testability. However, static properties already exist in PHP and have proven to be useful in certain scenarios. Ignoring the need for a more elegant initialization method does not negate the practical use cases where static properties are beneficial and the natural approach.
 
 ### Comparison with Other Object-Oriented Languages
 
@@ -196,7 +196,7 @@ This case demonstrates how introducing a static constructor in PHP would not onl
 
 ## What this RFC is not
 
-This RFC does not intend to promote the indiscriminate usage of static variables but rather to provide a way to properly initialize them when they are useful.
+This RFC does not intend to promote the indiscriminate usage of static properties but rather to provide a way to properly initialize them when they are useful.
 
 ### Implementation on other programming languages
 
@@ -331,7 +331,7 @@ public class Program
 
 
 #### C++
-Since its 2017 specification "C++17", C++ provides a way to declare constant expression lambdas (equivalent to PHP's closures). This allows leveraging this feature to initialize complex values for static variables using an `inline` with `constexpr` lambda:
+Since its 2017 specification "C++17", C++ provides a way to declare constant expression lambdas (equivalent to PHP's closures). This allows leveraging this feature to initialize complex values for static properties using an `inline` with `constexpr` lambda:
 
 ```c++
 #include <iostream>
@@ -380,7 +380,7 @@ Example.display()
 
 ## Design decisions
 
-This implementation draws inspiration from the C# implementation but is less restrictive. Programmers have the option to call the `__staticConstruct` method to reset static variable values if desired.
+This implementation draws inspiration from the C# implementation but is less restrictive. Programmers have the option to call the `__staticConstruct` method to reset static properties values if desired.
 
 The implementation enforces the `private` access modifier on the `__staticConstruct` method intentionally to prevent inheritance of the static constructor. This prevents unintended re-initialization of parent class static properties, which is often not desired. If a programmer wants to share code from a parent class, they can create a new method and call it within `__staticConstruct`.
 
@@ -393,7 +393,7 @@ Similar to the C# implementation, the static constructor can take no arguments.
 
 ## Implementation notes
 
-- Unlike C#, this implementation of the static constructor does not get triggered at the first reference to the class in the code. Instead, it utilizes the existing lazy initialization logic for static variables implemented in the `zend_class_init_statics` function within the `zend_object_handlers.c` file. Initialization occurs upon the first reference to any static property of the class;
+- Unlike C#, this implementation of the static constructor does not get triggered at the first reference to the class in the code. Instead, it utilizes the existing lazy initialization logic for static properties implemented in the `zend_class_init_statics` function within the `zend_object_handlers.c` file. Initialization occurs upon the first reference to any static property of the class;
 
 - Even if the method were `protected` or `public`, it would not be automatically called by the engine if not explicitly declared. Unlike the `__construct` method, the static constructor method is intentionally not copied to the correspondent "shortcut" variable dedicated to this magic method during inheritance operations (performed at the `do_inherit_parent_constructor` function of the `zend_inheritance.c` file).
 
