@@ -192,7 +192,7 @@ class ClassLoader
 }
 ```
 
-This case demonstrates how introducing a static constructor in PHP would not only simplify the initialization of static properties but also improve code readability and maintainability. This RFC aims to enhance PHP's object-oriented capabilities by providing a cleaner mechanism for initializing static variables.
+This case demonstrates how introducing a static constructor in PHP would not only simplify the initialization of static properties but also improve code readability and maintainability. This RFC aims to enhance PHP's object-oriented capabilities by providing a cleaner mechanism for initializing static properties.
 
 ## What this RFC is not
 
@@ -393,9 +393,9 @@ Similar to the C# implementation, the static constructor can take no arguments.
 
 ## Implementation notes
 
-- Unlike C#, this implementation of the static constructor does not get triggered at the first reference to the class in the code. Instead, it utilizes the existing lazy initialization logic for static variables implemented in the `zend_class_init_statics` function within the `zend_object_handlers` file. Initialization occurs upon the first reference to any static property of the class;
+- Unlike C#, this implementation of the static constructor does not get triggered at the first reference to the class in the code. Instead, it utilizes the existing lazy initialization logic for static variables implemented in the `zend_class_init_statics` function within the `zend_object_handlers.c` file. Initialization occurs upon the first reference to any static property of the class;
 
-- Even if the method were `protected` or `public`, it would not be automatically called by the engine if not explicitly declared. This would prevent automatic inheritance by child classes. Unlike the `__construct` method, the static constructor method is intentionally not copied to the "shortcut" variable dedicated to magic methods during inheritance operations (such as in the `do_inherit_parent_constructor` function of the `zend_inheritance.c` file).
+- Even if the method were `protected` or `public`, it would not be automatically called by the engine if not explicitly declared. Unlike the `__construct` method, the static constructor method is intentionally not copied to the correspondent "shortcut" variable dedicated to this magic method during inheritance operations (performed at the `do_inherit_parent_constructor` function of the `zend_inheritance.c` file).
 
 
 ## Examples
